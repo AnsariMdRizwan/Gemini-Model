@@ -8,6 +8,7 @@ const chatcontainer = document.querySelector(".chat-container");
 
 
 let userText = null;
+const API_KEY = import.meta.env.API_KEY
 const initialheight = chatinput.scrollHeight;
 
 const loaddatafromstorage = () => {
@@ -29,8 +30,6 @@ const loaddatafromstorage = () => {
 loaddatafromstorage();
 
 const getchatResponse = async (incomingchatdiv) => {
-    const API_KEY = import.meta.env.API_KEY
-
     const API_URL = "https://api.openai.com/v1/completions";
     const pElement = document.createElement("p");
     const requestOptions = {
