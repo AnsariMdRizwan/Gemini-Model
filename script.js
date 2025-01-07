@@ -1,3 +1,6 @@
+import { GoogleGenerativeAI,  
+     } from "@google/generative-ai";
+
 
 const chatinput = document.querySelector("#chat-input")
 const sendbutton = document.querySelector("#send-btn");
@@ -8,8 +11,11 @@ const chatcontainer = document.querySelector(".chat-container");
 
 
 let userText = null;
-const API_KEY = import.meta.env.API_KEY
 const initialheight = chatinput.scrollHeight;
+const apiKey = import.meta.env.VITE_GOOGLE_AI_API_KEY;
+
+
+
 
 const loaddatafromstorage = () => {
     const themecolor = localStorage.getItem("theme-color");
@@ -19,8 +25,9 @@ const loaddatafromstorage = () => {
     themebutton.innerText = document.body.classList.contains("light-mode") ? "dark_mode" : "light_mode";
 
     const defaulttext = `<div class="default-text">
-        <h1>Chat-Gpt Clone</h1>
-        <p>Start a conservation and explore the power of the Ai<br> World's Most powerful tool</p>
+        <h1>Chat-Gpt Clone </h1></br>
+         <h1>🤖</h1>
+        <p>Start a conservation and explore the power of the Ai<br> World's Most powerful tool...</p>
     </div>`
     chatcontainer.innerHTML = localStorage.getItem("all-chats") || defaulttext
 
@@ -30,42 +37,69 @@ const loaddatafromstorage = () => {
 loaddatafromstorage();
 
 const getchatResponse = async (incomingchatdiv) => {
-    const API_URL = "https://api.openai.com/v1/completions";
-    const pElement = document.createElement("p");
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            "Content-type": "application/json",
-            "Authorization": `Bearer ${API_KEY}`
-        },
-        body: JSON.stringify({
-            model: "gpt-3.5-turbo-instruct",
-            prompt: userText,
-            max_tokens: 2048,
-            temperature: 0.2,
-            n: 1,
-            stop: null
-        })
-    }
     try {
-        const response = await (await fetch(API_URL, requestOptions)).json();
-        pElement.textContent = response.choices[0].text.trim();
-    } catch (error) {
-        pElement.classList.add("error");
-        pElement.textContent = "Oops! something went wrong while retrieving the response. Please try again."
-    }
-    incomingchatdiv.querySelector(".typing-animation").remove();
-    incomingchatdiv.querySelector(".chat-details").appendChild(pElement);
-    chatcontainer.scrollTo(0, chatcontainer.scrollHeight);
-    localStorage.setItem("all-chats", chatcontainer.innerHTML);
-}
+        const genAI = new GoogleGenerativeAI(apiKey);
 
-const copyResponse = (copyBtn) => {
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+        });
+
+        const generationConfig = {
+            temperature: 1,
+            topP: 0.95,
+            topK: 40,
+            maxOutputTokens: 81920,
+            responseMimeType: "text/plain",
+        };
+
+        const chatSession = model.startChat({
+            generationConfig,
+            history: [],
+        });
+
+        const result = await chatSession.sendMessage(userText);
+
+        // Replace typing animation with the response text
+        const responseText = result.response.text();
+        console.log(responseText);
+
+        incomingchatdiv.innerHTML = `
+            <div class="chat-content">
+                <div class="chat-details">
+                    <img src="images/chat-bot.png" alt="">
+                    <p>${responseText}</p>
+                </div>
+                <span onclick="copyResponse(this)" class="material-symbols-outlined">content_copy</span>
+            </div>`;
+        
+        // Scroll to the bottom of the chat container
+       
+        localStorage.setItem("all-chats", chatcontainer.innerHTML);
+    } catch (error) {
+        console.error("Error in getchatResponse:", error);
+
+        // Show an error message in place of the typing animation
+        incomingchatdiv.innerHTML = `
+            <div class="chat-content">
+                <div class="chat-details">
+                    <img src="images/chat-bot.png" alt="">
+                    <p>Sorry, something went wrong. Please try again.</p>
+                </div>
+            </div>`;
+    }
+};
+
+
+
+
+
+window.copyResponse = (copyBtn) => {
     const responseTextElement = copyBtn.parentElement.querySelector("p");
     navigator.clipboard.writeText(responseTextElement.textContent);
-    copyBtn.textContent = "done"
-    setTimeout(() => copyBtn.textContent = "content_copy", 1000)
-}
+    copyBtn.textContent = "✔️";
+    setTimeout(() => (copyBtn.textContent = "content_copy"), 1000);
+};
+
 
 const createElement = (html, classname) => {
     const chatdiv = document.createElement("div");
@@ -75,7 +109,7 @@ const createElement = (html, classname) => {
 }
 
 const showTypingAnimation = () => {
-    const html = `<div class="chat-content">
+    const html =`<div class="chat-content">
     <div class="chat-details">
     <img src="images/chat-bot.png" alt="">
     <div class="typing-animation">
@@ -85,7 +119,7 @@ const showTypingAnimation = () => {
     </div>
     </div>
     <span  onclick="copyResponse(this)" class="material-symbols-outlined">content_copy</span>
-    </div>`;
+    </div>`
     const incomingchatdiv = createElement(html, "incoming");
     chatcontainer.appendChild(incomingchatdiv);
     chatcontainer.scrollTo(0, chatcontainer.scrollHeight)
