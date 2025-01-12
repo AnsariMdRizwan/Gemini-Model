@@ -1,5 +1,6 @@
-import { GoogleGenerativeAI,  
-     } from "@google/generative-ai";
+import {
+    GoogleGenerativeAI,
+} from "@google/generative-ai";
 
 
 const chatinput = document.querySelector("#chat-input")
@@ -25,14 +26,15 @@ const loaddatafromstorage = () => {
     themebutton.innerText = document.body.classList.contains("light-mode") ? "dark_mode" : "light_mode";
 
     const defaulttext = `<div class="default-text">
-        <h1>Chat-Gpt Clone </h1></br>
+        <h1>Gemini-1.5</h1></br>
          <h1>🤖</h1>
         <p>Start a conservation and explore the power of the Ai<br> World's Most powerful tool...
         </p>
-    </div>`
+        </div>`
+   
+
     chatcontainer.innerHTML = localStorage.getItem("all-chats") || defaulttext
 
-    chatcontainer.scrollTo(0, chatcontainer.scrollHeight)
 }
 
 loaddatafromstorage();
@@ -63,18 +65,22 @@ const getchatResponse = async (incomingchatdiv) => {
         // Replace typing animation with the response text
         const responseText = result.response.text();
         console.log(responseText);
+        const formattedText = responseText
+            .trim()
+            .replace(/\n/g, "<br>");
 
         incomingchatdiv.innerHTML = `
             <div class="chat-content">
                 <div class="chat-details">
-                    <img src="images/chat-bot.png" alt="">
-                    <p>${responseText}</p>
+                    <img src="/images/chat-bot.png" alt="">
+                    <p>${formattedText}</p>
                 </div>
                 <span onclick="copyResponse(this)" class="material-symbols-outlined">content_copy</span>
             </div>`;
-        
+
         // Scroll to the bottom of the chat container
-       
+        chatcontainer.scrollTo(0, chatcontainer.scrollHeight);
+
         localStorage.setItem("all-chats", chatcontainer.innerHTML);
     } catch (error) {
         console.error("Error in getchatResponse:", error);
@@ -83,8 +89,8 @@ const getchatResponse = async (incomingchatdiv) => {
         incomingchatdiv.innerHTML = `
             <div class="chat-content">
                 <div class="chat-details">
-                    <img src="images/chat-bot.png" alt="">
-                    <p>Sorry, something went wrong. Please try again.</p>
+                    <img src="/images/chat-bot.png" alt="">
+                    <p class="error" >Sorry, something went wrong. Please try again.</p>
                 </div>
             </div>`;
     }
@@ -110,9 +116,9 @@ const createElement = (html, classname) => {
 }
 
 const showTypingAnimation = () => {
-    const html =`<div class="chat-content">
-    <div class="chat-details">
-    <img src="images/chat-bot.png" alt="">
+    const html = `<div class="chat-content">
+    <div class="chat-details-t">
+    <img src="/images/chat-bot.png alt="">
     <div class="typing-animation">
     <div class="typing-dot" style="--delay:0.2s"></div>
     <div class="typing-dot" style="--delay:0.3s"></div>
@@ -134,7 +140,7 @@ const handleoutgoingchat = () => {
     chatinput.style.height = `${initialHeight}px`
     const html = `<div class="chat-content">
                 <div class="chat-details">
-                    <img src="images/user.png" alt="">
+                    <img src="/images/user.png" alt="">
                     <p></p>
                 </div>
             </div>`;
